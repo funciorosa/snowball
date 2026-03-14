@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import MetricCards from '@/components/dashboard/MetricCards'
 import WaveAlert from '@/components/dashboard/WaveAlert'
 import SnowballCalendar from '@/components/dashboard/SnowballCalendar'

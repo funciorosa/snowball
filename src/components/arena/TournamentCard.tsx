@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface Tournament {
   id: string
@@ -18,7 +18,7 @@ const MOCK_TOURNAMENT: Tournament = {
   capitalAssigned: 200,
   currentBalance: 224.60,
   targetPct: 20,
-  deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+  deadline: '2026-03-19T00:00:00.000Z',
   status: 'active',
 }
 
@@ -47,13 +47,20 @@ function getTimeRemaining(deadline: string) {
 
 export default function TournamentCard() {
   const [joining, setJoining] = useState<string | null>(null)
+  const [timeRemaining, setTimeRemaining] = useState('5d 0h')
   const t = MOCK_TOURNAMENT
+
+  useEffect(() => {
+    const update = () => setTimeRemaining(getTimeRemaining(t.deadline))
+    update()
+    const timer = setInterval(update, 60000)
+    return () => clearInterval(timer)
+  }, [t.deadline])
 
   const progress = ((t.currentBalance - t.capitalAssigned) / (t.capitalAssigned * t.targetPct / 100)) * 100
   const clampedProgress = Math.min(Math.max(progress, 0), 100)
   const pnl = t.currentBalance - t.capitalAssigned
   const pnlPct = (pnl / t.capitalAssigned) * 100
-  const timeRemaining = getTimeRemaining(t.deadline)
 
   const handleJoin = (id: string) => {
     setJoining(id)

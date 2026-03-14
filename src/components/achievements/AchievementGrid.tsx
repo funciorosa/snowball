@@ -196,7 +196,11 @@ export default function AchievementGrid() {
                     letterSpacing: '0.3px',
                   }}
                 >
-                  ✓ {new Date(achievement.unlockedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  ✓ {(() => {
+                      const [, m, d] = achievement.unlockedAt.split('-')
+                      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                      return `${months[parseInt(m) - 1]} ${parseInt(d)}`
+                    })()}
                 </div>
               )}
             </div>

@@ -152,7 +152,11 @@ export default function TradesTable() {
 
                   {/* Date */}
                   <td style={{ padding: '10px 12px', fontSize: '12px', fontWeight: 600, color: 'rgba(125,219,255,0.5)' }}>
-                    {new Date(trade.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {(() => {
+                      const [, m, d] = trade.date.split('-')
+                      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                      return `${months[parseInt(m) - 1]} ${parseInt(d)}`
+                    })()}
                   </td>
                 </tr>
               )
