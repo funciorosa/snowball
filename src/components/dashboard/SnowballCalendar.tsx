@@ -1,5 +1,7 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 interface DayData {
@@ -150,16 +152,26 @@ function SnowballDay({
 }
 
 export default function SnowballCalendar() {
-  const today = new Date()
-  const year = today.getFullYear()
-  const month = today.getMonth()
-  const todayDay = today.getDate()
+  const [monthData, setMonthData] = useState<DayData[]>([])
+  const [calInfo, setCalInfo] = useState({ year: 0, month: 0, todayDay: 0, monthName: '', firstDayOfMonth: 0, daysInMonth: 0 })
 
-  const monthName = today.toLocaleString('default', { month: 'long' })
-  const firstDayOfMonth = new Date(year, month, 1).getDay()
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  useEffect(() => {
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = today.getMonth()
+    const todayDay = today.getDate()
+    setCalInfo({
+      year,
+      month,
+      todayDay,
+      monthName: today.toLocaleString('default', { month: 'long' }),
+      firstDayOfMonth: new Date(year, month, 1).getDay(),
+      daysInMonth: new Date(year, month + 1, 0).getDate(),
+    })
+    setMonthData(generateMockMonth())
+  }, [])
 
-  const monthData = generateMockMonth()
+  const { year, todayDay, monthName, firstDayOfMonth, daysInMonth } = calInfo
 
   return (
     <div

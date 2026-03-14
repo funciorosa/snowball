@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import {
   LineChart,
   Line,
@@ -8,23 +9,25 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts'
 
-function generateChartData(initialCapital: number) {
+interface ChartPoint {
+  date: string
+  actual: number
+  target: number
+}
+
+function generateChartData(initialCapital: number): ChartPoint[] {
   const today = new Date()
   const year = today.getFullYear()
   const month = today.getMonth()
   const todayDay = today.getDate()
 
-  const data = []
+  const data: ChartPoint[] = []
   let actual = initialCapital
-  let target = initialCapital
 
   for (let day = 1; day <= todayDay; day++) {
-    target = initialCapital * Math.pow(1.02, day - 1)
-
-    // Random actual performance with some variance around 2%
+    const target = initialCapital * Math.pow(1.02, day - 1)
     const dailyReturn = (Math.random() * 4.5 - 0.8) / 100
     actual = actual * (1 + dailyReturn)
 
@@ -81,7 +84,11 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 }
 
 export default function TargetChart({ initialCapital = 1000 }: { initialCapital?: number }) {
-  const data = generateChartData(initialCapital)
+  const [data, setData] = useState<ChartPoint[]>([])
+
+  useEffect(() => {
+    setData(generateChartData(initialCapital))
+  }, [initialCapital])
 
   return (
     <div
