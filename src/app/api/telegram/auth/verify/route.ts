@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { buildClient, saveSession } from '@/lib/telegram-client'
@@ -13,7 +14,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'code and phoneCodeHash required' }, { status: 400 })
   }
 
-  // Load the pre-auth session from Supabase
   const admin = createAdminClient()
   const { data: sessionRow } = await admin
     .from('telegram_sessions')
@@ -26,24 +26,23 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const client = buildClient(sessionRow.session_string)
+    const client = await buildClient(sessionRow.session_string)
     await client.connect()
 
-    await client.signIn(
+    await (client as any).signIn(
       { apiId: parseInt(process.env.TELEGRAM_API_ID ?? '0', 10), apiHash: process.env.TELEGRAM_API_HASH ?? '' },
       { phoneNumber: sessionRow.phone, phoneCodeHash, phoneCode: code }
     )
 
-    const finalSession = (client.session as import('telegram/sessions').StringSession).save()
+    const finalSession: string = client.session.save()
     await saveSession(user.id, finalSession, sessionRow.phone)
     await client.disconnect()
 
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Verification failed'
-    // Handle 2FA (password required)
     if (message.includes('SESSION_PASSWORD_NEEDED')) {
-      return NextResponse.json({ error: 'Two-factor authentication is enabled. 2FA not supported yet.' }, { status: 422 })
+      return NextResponse.json({ error: 'Two-factor authentication enabled. 2FA not supported yet.' }, { status: 422 })
     }
     return NextResponse.json({ error: message }, { status: 400 })
   }
