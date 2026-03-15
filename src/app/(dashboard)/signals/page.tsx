@@ -96,8 +96,9 @@ function MomentumArrow({ momentum }: { momentum: string }) {
 function ActiveSignalCard({ signal }: { signal: Signal }) {
   const coinName = signal.coin.replace('USDT', '')
   const isLong = signal.direction === 'long'
-  const tgtPct = ((signal.target_price - signal.entry_price) / signal.entry_price * 100).toFixed(1)
-  const slPct = ((signal.stop_loss - signal.entry_price) / signal.entry_price * 100).toFixed(1)
+  const entry = signal.entry_price ?? 0
+  const tgtPct = entry > 0 && signal.target_price ? ((signal.target_price - entry) / entry * 100).toFixed(1) : null
+  const slPct = entry > 0 && signal.stop_loss ? ((signal.stop_loss - entry) / entry * 100).toFixed(1) : null
   const elapsed = Math.floor((Date.now() - new Date(signal.created_at).getTime()) / 60000)
 
   return (
@@ -128,9 +129,9 @@ function ActiveSignalCard({ signal }: { signal: Signal }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px' }}>
         {[
-          { label: 'Entry', value: `$${signal.entry_price.toLocaleString(undefined, { maximumFractionDigits: 4 })}`, color: '#e8f4ff' },
-          { label: 'Target', value: `+${tgtPct}%`, color: '#3DDB8C' },
-          { label: 'Stop', value: `${slPct}%`, color: '#FF6B6B' },
+          { label: 'Entry', value: entry > 0 ? `$${entry.toLocaleString(undefined, { maximumFractionDigits: 4 })}` : '—', color: '#e8f4ff' },
+          { label: 'Target', value: tgtPct ? `+${tgtPct}%` : '—', color: '#3DDB8C' },
+          { label: 'Stop', value: slPct ? `${slPct}%` : '—', color: '#FF6B6B' },
         ].map(({ label, value, color }) => (
           <div key={label} style={{
             background: 'rgba(2,9,24,0.4)', border: `1px solid ${color}22`,
@@ -149,7 +150,7 @@ function ActiveSignalCard({ signal }: { signal: Signal }) {
         <span style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(125,219,255,0.6)', background: 'rgba(125,219,255,0.08)', border: '1px solid rgba(125,219,255,0.15)', borderRadius: '5px', padding: '2px 8px' }}>
           🌊 {signal.momentum}
         </span>
-        {signal.trader_names.slice(0, 3).map(name => (
+        {(signal.trader_names ?? []).slice(0, 3).map(name => (
           <span key={name} style={{ fontSize: '11px', fontWeight: 700, color: '#7DDBFF', background: 'rgba(70,160,255,0.1)', border: '1px solid rgba(70,160,255,0.2)', borderRadius: '5px', padding: '2px 8px' }}>
             @{name}
           </span>
