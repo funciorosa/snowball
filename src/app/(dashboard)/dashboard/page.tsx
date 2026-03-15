@@ -6,6 +6,7 @@ import SnowballCalendar from '@/components/dashboard/SnowballCalendar'
 import TargetChart from '@/components/dashboard/TargetChart'
 import PortfolioBreakdown from '@/components/dashboard/PortfolioBreakdown'
 import HeroBanner from '@/components/dashboard/HeroBanner'
+import TelegramConnect from '@/components/settings/TelegramConnect'
 
 const WEEKDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 const MONTHS_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -57,6 +58,9 @@ export default function DashboardPage() {
 
       {/* Portfolio Breakdown */}
       <PortfolioBreakdown />
+
+      {/* Telegram Notifications */}
+      <TelegramConnect />
     </div>
   )
 }
