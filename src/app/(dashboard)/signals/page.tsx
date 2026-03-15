@@ -37,6 +37,19 @@ interface LeaderboardData {
   fearGreed: number
 }
 
+interface ChannelSignal {
+  id: string
+  coin: string
+  direction: 'long' | 'short'
+  entry_price: number | null
+  target_price: number | null
+  stop_loss: number | null
+  confidence_score: number
+  source_channel: string
+  source_message: string | null
+  created_at: string
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 const COIN_COLORS: Record<string, string> = {
   BTC: '#F7931A', ETH: '#627EEA', SOL: '#9945FF', BNB: '#F3BA2F',
@@ -158,18 +171,22 @@ export default function SignalsPage() {
   const [data, setData] = useState<LeaderboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'watchlist' | 'traders'>('watchlist')
+  const [channelSignals, setChannelSignals] = useState<ChannelSignal[]>([])
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [pricesRes, lbRes] = await Promise.all([
+        const [pricesRes, lbRes, chRes] = await Promise.all([
           fetch('/api/signals'),
           fetch('/api/signals/leaderboard'),
+          fetch('/api/signals/channel-signals'),
         ])
         const prices = pricesRes.ok ? await pricesRes.json() : []
         const lb = lbRes.ok ? await lbRes.json() : {}
+        const ch = chRes.ok ? await chRes.json() : {}
 
-        // Merge BTC/ETH/SOL prices into watchlist if leaderboard watchlist is empty
+        setChannelSignals(ch.signals ?? [])
+
         const watchlist: WatchlistCoin[] = lb.watchlist?.length > 0 ? lb.watchlist
           : prices.map((p: { coin: string; price: number; change24h: number; volume: number }) => ({
               symbol: p.coin + 'USDT', coin: p.coin, price: p.price,
@@ -189,7 +206,7 @@ export default function SignalsPage() {
       }
     }
     load()
-    const interval = setInterval(load, 60000) // refresh every 60s
+    const interval = setInterval(load, 60000)
     return () => clearInterval(interval)
   }, [])
 
@@ -240,6 +257,69 @@ export default function SignalsPage() {
           <div style={{ fontSize: '16px', fontWeight: 800, color: '#e8f4ff', marginBottom: '6px' }}>No Active Signals</div>
           <div style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(125,219,255,0.5)' }}>
             Monitoring 13 coins · Scanning every 15 min · Need 3/5 trader consensus
+          </div>
+        </div>
+      )}
+
+      {/* From Channels */}
+      {channelSignals.length > 0 && (
+        <div>
+          <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#7DDBFF', margin: '0 0 12px 0', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            💬 From Channels ({channelSignals.length})
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {channelSignals.map((s) => {
+              const isLong = s.direction === 'long'
+              const elapsed = Math.floor((Date.now() - new Date(s.created_at).getTime()) / 60000)
+              const scoreColor = s.confidence_score >= 75 ? '#3DDB8C' : s.confidence_score >= 50 ? '#7DDBFF' : '#FFE060'
+              return (
+                <div key={s.id} style={{
+                  ...icePanel,
+                  border: `1px solid ${isLong ? 'rgba(61,219,140,0.25)' : 'rgba(255,107,107,0.25)'}`,
+                  display: 'grid',
+                  gridTemplateColumns: 'auto 1fr auto',
+                  gap: '14px',
+                  alignItems: 'center',
+                }}>
+                  {/* Coin + direction */}
+                  <div>
+                    <div style={{ fontSize: '16px', fontWeight: 900, color: COIN_COLORS[s.coin.replace('USDT', '')] ?? '#7DDBFF' }}>
+                      {COIN_ICONS[s.coin.replace('USDT', '')] ?? '●'}
+                    </div>
+                    <div style={{ fontSize: '10px', fontWeight: 800, color: isLong ? '#3DDB8C' : '#FF6B6B', marginTop: '2px' }}>
+                      {isLong ? '▲ LONG' : '▼ SHORT'}
+                    </div>
+                  </div>
+
+                  {/* Message + source */}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 900, color: '#e8f4ff' }}>{s.coin}/USDT</span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#7DDBFF', background: 'rgba(70,160,255,0.1)', border: '1px solid rgba(70,160,255,0.2)', borderRadius: '5px', padding: '1px 7px' }}>
+                        @{s.source_channel}
+                      </span>
+                    </div>
+                    {s.source_message && (
+                      <div style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(125,219,255,0.6)', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '420px' }}>
+                        &ldquo;{s.source_message}&rdquo;
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
+                      {s.entry_price && <span style={{ fontSize: '11px', color: 'rgba(125,219,255,0.5)', fontWeight: 600 }}>Entry: ${s.entry_price}</span>}
+                      {s.target_price && <span style={{ fontSize: '11px', color: '#3DDB8C', fontWeight: 600 }}>Target: ${s.target_price}</span>}
+                      {s.stop_loss && <span style={{ fontSize: '11px', color: '#FF6B6B', fontWeight: 600 }}>Stop: ${s.stop_loss}</span>}
+                      {!s.entry_price && <span style={{ fontSize: '11px', color: '#FFE060', fontWeight: 600 }}>⚠️ No entry specified</span>}
+                    </div>
+                  </div>
+
+                  {/* Score + time */}
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 900, color: scoreColor }}>{s.confidence_score}/100</div>
+                    <div style={{ fontSize: '10px', fontWeight: 600, color: 'rgba(125,219,255,0.4)', marginTop: '2px' }}>{elapsed}m ago</div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

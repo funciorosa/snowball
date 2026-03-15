@@ -11,6 +11,14 @@
     {
       "path": "/api/cron/check-signals",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/telegram/fetch-messages",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/telegram/analyze-messages",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

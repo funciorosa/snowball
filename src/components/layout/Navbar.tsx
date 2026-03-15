@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 const tabs = [
   { label: 'Dashboard', href: '/dashboard', icon: '❄' },
   { label: 'Signals', href: '/signals', icon: '📡' },
+  { label: 'Channels', href: '/settings/channels', icon: '💬' },
   { label: 'Achievements', href: '/achievements', icon: '🏆' },
   { label: 'Arena', href: '/arena', icon: '⚔' },
 ]
