@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [],
   },
+  serverExternalPackages: ['telegram', 'telegram/sessions'],
   async headers() {
     return [
       {
