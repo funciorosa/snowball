@@ -5,10 +5,20 @@ import WaveAlert from '@/components/dashboard/WaveAlert'
 import SnowballCalendar from '@/components/dashboard/SnowballCalendar'
 import TargetChart from '@/components/dashboard/TargetChart'
 import PortfolioBreakdown from '@/components/dashboard/PortfolioBreakdown'
+import HeroBanner from '@/components/dashboard/HeroBanner'
+
+const WEEKDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+const MONTHS_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 export default function DashboardPage() {
+  const now = new Date()
+  const dateLabel = `${WEEKDAYS[now.getDay()]}, ${MONTHS_LONG[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Hero Banner */}
+      <HeroBanner />
+
       {/* Page header */}
       <div>
         <h1
@@ -23,7 +33,7 @@ export default function DashboardPage() {
           ❄ Dashboard
         </h1>
         <p style={{ color: 'rgba(125,219,255,0.55)', fontSize: '14px', fontWeight: 600, margin: 0 }}>
-          {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          {dateLabel}
         </p>
       </div>
 

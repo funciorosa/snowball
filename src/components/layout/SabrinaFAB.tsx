@@ -130,8 +130,8 @@ export default function SabrinaFAB() {
         <div
           style={{
             position: 'fixed',
-            bottom: '100px',
-            right: '24px',
+            bottom: '138px',
+            right: '20px',
             width: '380px',
             maxHeight: '560px',
             zIndex: 200,
@@ -375,49 +375,67 @@ export default function SabrinaFAB() {
         onClick={() => setOpen(!open)}
         style={{
           position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          width: '72px',
-          height: '72px',
-          borderRadius: '50%',
-          background: 'linear-gradient(145deg, rgba(12,35,90,0.95), rgba(6,20,58,0.98))',
-          border: '2px solid rgba(125,219,255,0.4)',
+          bottom: '20px',
+          right: '20px',
+          width: '82px',
+          height: '100px',
+          borderRadius: '41px 41px 20px 20px',
+          background: 'linear-gradient(180deg, rgba(8,25,72,0.0) 0%, rgba(8,25,72,0.85) 55%, rgba(6,20,58,0.97) 100%)',
+          border: '1.5px solid rgba(125,219,255,0.35)',
+          borderTop: 'none',
           cursor: 'pointer',
           zIndex: 201,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: '2px',
+          justifyContent: 'flex-end',
+          paddingBottom: '8px',
+          gap: '3px',
           animation: 'float 3s ease-in-out infinite',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(125,219,255,0.2)',
-          transition: 'border-color 0.2s',
-          padding: 0,
+          boxShadow: '0 8px 36px rgba(0,0,0,0.45), 0 0 24px rgba(125,219,255,0.18)',
+          transition: 'border-color 0.2s, box-shadow 0.2s',
+          overflow: 'visible',
+          padding: '0 0 8px 0',
         }}
       >
-        <SabrinaSVG size={46} />
+        {/* Sabrina character sitting above the panel */}
+        <div style={{
+          position: 'absolute',
+          bottom: '28px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          filter: 'drop-shadow(0 4px 12px rgba(125,219,255,0.35))',
+        }}>
+          <SabrinaSVG size={78} />
+        </div>
+
         {/* Green online dot */}
         <div
           style={{
             position: 'absolute',
-            top: '6px',
-            right: '6px',
-            width: '10px',
-            height: '10px',
+            top: '18px',
+            right: '10px',
+            width: '11px',
+            height: '11px',
             borderRadius: '50%',
             background: '#3DDB8C',
             border: '2px solid #020918',
             animation: 'pulse-green 2s ease-in-out infinite',
+            zIndex: 1,
           }}
         />
+
+        {/* SABRINA label */}
         <div
           style={{
-            fontSize: '8px',
-            fontWeight: 800,
+            fontSize: '9px',
+            fontWeight: 900,
             color: '#7DDBFF',
             fontFamily: "'Nunito', sans-serif",
-            letterSpacing: '0.5px',
+            letterSpacing: '1px',
             lineHeight: 1,
+            position: 'relative',
+            zIndex: 1,
           }}
         >
           SABRINA

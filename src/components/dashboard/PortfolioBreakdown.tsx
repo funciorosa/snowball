@@ -22,11 +22,12 @@ export default function PortfolioBreakdown() {
   return (
     <div
       style={{
-        background: 'linear-gradient(145deg, rgba(12,35,90,0.85), rgba(6,20,58,0.92))',
-        border: '1px solid rgba(70,160,255,0.22)',
+        background: 'linear-gradient(145deg, rgba(12,35,90,0.88), rgba(6,20,58,0.94))',
+        border: '1px solid rgba(70,160,255,0.28)',
         borderRadius: '14px',
         padding: '20px',
         fontFamily: "'Nunito', sans-serif",
+        boxShadow: 'inset 0 1px 0 rgba(125,219,255,0.18), inset 0 0 40px rgba(70,160,255,0.06), 0 8px 32px rgba(0,0,0,0.35)',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
