@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { buildClient } from '@/lib/telegram-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(req: NextRequest) {
@@ -13,17 +11,20 @@ export async function POST(req: NextRequest) {
   if (!phone) return NextResponse.json({ error: 'phone required' }, { status: 400 })
 
   try {
-    const client = await buildClient()
+    // Dynamically load gramjs at runtime (not bundled at build time)
+    const { TelegramClient } = await import('telegram')
+    const { StringSession } = await import('telegram/sessions')
+
+    const apiId = parseInt(process.env.TELEGRAM_API_ID ?? '0', 10)
+    const apiHash = process.env.TELEGRAM_API_HASH ?? ''
+
+    const client = new TelegramClient(new StringSession(''), apiId, apiHash, { connectionRetries: 3 })
     await client.connect()
 
-    const result: any = await client.sendCode(
-      { apiId: parseInt(process.env.TELEGRAM_API_ID ?? '0', 10), apiHash: process.env.TELEGRAM_API_HASH ?? '' },
-      phone
-    )
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result: any = await client.sendCode({ apiId, apiHash }, phone)
+    const sessionString: string = (client.session as InstanceType<typeof StringSession>).save()
 
-    const sessionString: string = client.session.save()
-
-    // Store pre-auth session in Supabase (is_active: false until verified)
     const admin = createAdminClient()
     await admin.from('telegram_sessions').upsert(
       { user_id: user.id, session_string: sessionString, phone, is_active: false },
@@ -31,7 +32,6 @@ export async function POST(req: NextRequest) {
     )
 
     await client.disconnect()
-
     return NextResponse.json({ status: 'code_sent', phoneCodeHash: result.phoneCodeHash })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to send code'

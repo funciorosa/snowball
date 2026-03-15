@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { buildClient, saveSession } from '@/lib/telegram-client'
+import { saveSession } from '@/lib/telegram-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(req: NextRequest) {
@@ -26,15 +25,19 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const client = await buildClient(sessionRow.session_string)
+    const { TelegramClient } = await import('telegram')
+    const { StringSession } = await import('telegram/sessions')
+
+    const apiId = parseInt(process.env.TELEGRAM_API_ID ?? '0', 10)
+    const apiHash = process.env.TELEGRAM_API_HASH ?? ''
+
+    const client = new TelegramClient(new StringSession(sessionRow.session_string), apiId, apiHash, { connectionRetries: 3 })
     await client.connect()
 
-    await (client as any).signIn(
-      { apiId: parseInt(process.env.TELEGRAM_API_ID ?? '0', 10), apiHash: process.env.TELEGRAM_API_HASH ?? '' },
-      { phoneNumber: sessionRow.phone, phoneCodeHash, phoneCode: code }
-    )
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (client as any).signIn({ apiId, apiHash }, { phoneNumber: sessionRow.phone, phoneCodeHash, phoneCode: code })
 
-    const finalSession: string = client.session.save()
+    const finalSession: string = (client.session as InstanceType<typeof StringSession>).save()
     await saveSession(user.id, finalSession, sessionRow.phone)
     await client.disconnect()
 

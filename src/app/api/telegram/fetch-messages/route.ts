@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { buildClient } from '@/lib/telegram-client'
 
 export async function POST() {
   const admin = createAdminClient()
@@ -33,27 +31,31 @@ export async function POST() {
 
     if (!sessionRow?.session_string) continue
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let client: any = null
     try {
-      client = await buildClient(sessionRow.session_string)
+      const { TelegramClient } = await import('telegram')
+      const { StringSession } = await import('telegram/sessions')
+
+      const apiId = parseInt(process.env.TELEGRAM_API_ID ?? '0', 10)
+      const apiHash = process.env.TELEGRAM_API_HASH ?? ''
+
+      client = new TelegramClient(new StringSession(sessionRow.session_string), apiId, apiHash, { connectionRetries: 3 })
       await client.connect()
 
       for (const channel of userChannels) {
         try {
-          const entityParam = channel.channel_id
-            ? BigInt(channel.channel_id)
-            : `@${channel.channel_username}`
+          const entityParam = channel.channel_id ? BigInt(channel.channel_id) : `@${channel.channel_username}`
           const entity = await client.getEntity(entityParam)
-
-          const messages = await client.getMessages(entity, {
-            limit: 15,
-            minId: channel.last_message_id ?? 0,
-          })
+          const messages = await client.getMessages(entity, { limit: 15, minId: channel.last_message_id ?? 0 })
 
           if (!messages.length) continue
 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const rows = (messages as any[])
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .filter((m: any) => m.message && m.message.trim().length > 10)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((m: any) => ({
               user_id: userId,
               channel_username: channel.channel_username,
@@ -69,7 +71,7 @@ export async function POST() {
               .upsert(rows, { onConflict: 'user_id,channel_username,message_id', ignoreDuplicates: true })
 
             totalFetched += rows.length
-
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const maxId = Math.max(...rows.map((r: any) => r.message_id))
             await admin
               .from('monitored_channels')
@@ -79,7 +81,6 @@ export async function POST() {
         } catch (chErr) {
           console.error(`Error fetching @${channel.channel_username}:`, chErr)
         }
-
         await new Promise((r) => setTimeout(r, 300))
       }
     } catch (err) {
